@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Gráfico de Precio en Tiempo Real</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+  <div class="contenedor">
+    <canvas id="graficoLinea"></canvas>
+    <div class="info-precio">
+      <p>Valor actual: <span id="valorActual">--</span></p>
+      <p id="tendencia">Esperando datos...</p>
+    </div>
+  </div>
+
+  <script>
+    const ctx = document.getElementById('graficoLinea').getContext('2d');
+    const valorActualSpan = document.getElementById('valorActual');
+    const tendenciaTexto = document.getElementById('tendencia');
+
+    const data = {
+      labels: [],
+      datasets: [{
+        label: 'Precio en tiempo real',
+        data: [],
+        borderColor: '#00ffcc',
+        backgroundColor: 'rgba(0, 255, 204, 0.1)',
+        tension: 0.4,
+        fill: true,
+        pointRadius: 0
+      }]
+    };
+
+    const config = {
+      type: 'line',
+      data: data,
+      options: {
+        responsive: true,
+        scales: {
+          x: {
+            ticks: { color: '#cccccc' },
+            grid: { color: '#444' }
+          },
+          y: {
+            ticks: { color: '#cccccc' },
+            grid: { color: '#444' }
+          }
+        },
+        plugins: {
+          legend: {
+            labels: { color: '#cccccc' }
+          }
+        }
+      }
+    };
+
+    const chart = new Chart(ctx, config);
+
+    function agregarDato() {
+      const ahora = new Date();
+      const tiempo = ahora.toLocaleTimeString();
+
+      const valores = data.datasets[0].data;
+      const ultimoValor = valores[valores.length - 1] || 0.552000;
+      const nuevoValor = parseFloat((ultimoValor + (Math.random() - 0.5) * 0.001).toFixed(6));
+
+      // Agregar nuevo dato
+      data.labels.push(tiempo);
+      data.datasets[0].data.push(nuevoValor);
+
+      if (data.labels.length > 20) {
+        data.labels.shift();
+        data.datasets[0].data.shift();
+      }
+
+      chart.update();
+
+      // Mostrar valor actual
+      valorActualSpan.textContent = nuevoValor;
+
+      // Mostrar si subió o bajó
+      if (valores.length > 0) {
+        if (nuevoValor > ultimoValor) {
+          tendenciaTexto.textContent = "🔼 El valor subió";
+          tendenciaTexto.style.color = "lime";
+        } else if (nuevoValor < ultimoValor) {
+          tendenciaTexto.textContent = "🔻 El valor bajó";
+          tendenciaTexto.style.color = "red";
+        } else {
+          tendenciaTexto.textContent = "➖ Sin cambio";
+          tendenciaTexto.style.color = "gray";
+        }
+      }
+    }
+
+    setInterval(agregarDato, 1000);
+  </script>
+</body>
+</html>
